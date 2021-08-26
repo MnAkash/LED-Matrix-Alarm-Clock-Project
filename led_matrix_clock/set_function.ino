@@ -1,5 +1,5 @@
 void set_time() {
-  bool panel_section = 1; bool state = 1, flag = 0;
+  bool panel_section = 1; bool state = 1, flag = 0; 
   m1 = m3 = millis();
   while (1) {
     if (millis() - m1 > 500) {
@@ -30,6 +30,7 @@ void set_time() {
   get_date();
   hh = current_time / 100; mm = current_time % 100;
   clock.setDateTime(YY, MM, DD, hh, mm, 00);
+  clock.armAlarm1(true);
 }
 
 void set_alarm() {
@@ -64,6 +65,12 @@ void set_alarm() {
   menu_count = 1;
   hh = current_alarm / 100; mm = current_alarm % 100;
   clock.setAlarm1(0, hh, mm, 00, DS3231_MATCH_H_M_S);
+  m3 = millis(); int bar = B00000000;
+  while (millis() - m3 < wait_after_alarm_setup * 1000) {
+//    bar = bar ^ B11111111;
+//    lc.setRow(1, 7, bar); lc.setRow(0, 7, bar);
+//    delay(200);
+  }
 }
 
 void set_date() {

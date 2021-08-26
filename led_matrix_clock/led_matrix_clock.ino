@@ -27,15 +27,15 @@ RTCAlarmTime a1;
 #define beeping_interval 100 //set this higher for slower alarm tone
 #define return_time 30 //return to main function from blinking mode if nothing is pressed under 30 seconds 
 #define menu_time 10 //return to clock display if nothing is done on alarm display after 10 seconds
-#define mute_timer 60 //mutes the alarm after 60 seconds. set the value to 0 if you want to keep going permanently
+uint32_t mute_timer = 60; //mutes the alarm after 60 seconds.
 #define menu_button_snooze 1 //set it to 1 to snooze the alarm by pressing menu button, set button will stop alarm. if set to 0, pressing any button will stop the alarm.
-#define snooze_time 5 //if nothing is pressed when alarm went off, it will ring again after 5 minutes
+uint32_t snooze_time = 5; //if nothing is pressed when alarm went off, it will ring again after 5 minutes
 #define maximum_snooze_count 10
+#define wait_after_alarm_setup 3 //show the alarm screen for 10 seconds if a new alarm time is set
 
+//don't change these values below
 int snooze_count = maximum_snooze_count;
 bool snooze = 0; //don't change this
-
-//for co-ordination purpose, dont change this
 byte menu_count = 1;
 byte menu_limit = 2; //if you want to see date also, put value 3
 
@@ -66,19 +66,7 @@ void setup() {
   }
   Serial.begin(9600);
   clock.begin();
-
-  /*
-  //=================Comment out from here after alarm clear==================
-  // Disarm alarms and clear alarms for this example, because alarms is battery backed.
-  // Under normal conditions, the settings should be reset after power and restart microcontroller.
-  //don't keep these line in your final production otherwise the alarm will cleared off every time you reset the arduino
-  clock.armAlarm1(false);
-  clock.armAlarm2(false);
-  clock.clearAlarm1();
-  clock.clearAlarm2();
-
-  //==================Comment out upto this line after alarm clear============
-  */
+  mute_timer = mute_timer * 1000;
 }
 
 void loop() {
@@ -100,10 +88,13 @@ void loop() {
   //pressing the set button
   byte r = long_press();
   if (r == 1) {
-    lc.shutdown(1, 1);  ss = 1;
     if (alarm) {
       alarm = 0; digitalWrite(buzzer, 0); snooze = 0;
     }
+    if (menu_count == 1) {
+      ss = 1; display_value(current_time);
+    }
+    lc.shutdown(1, 1);
     while (!digitalRead(set_button));
     if (menu_count == 1) set_time();
     if (menu_count == 2) set_alarm();
@@ -115,7 +106,7 @@ void loop() {
       alarm = 0; digitalWrite(buzzer, 0);
     }
     if (menu_count == 2) clock.armAlarm1(!clock.isArmed1());
-    snooze = 0;
+    snooze = 0; m3 = millis();
   }
 
   //menu display
@@ -129,6 +120,5 @@ void loop() {
     snooze = 0;
     m2 = millis(); //for keeping the track of mute timer
   }
-  Serial.println(String(clock.isArmed1()) + "  " + clock.isAlarm1());
   if (alarm) alarm_function();
 }
