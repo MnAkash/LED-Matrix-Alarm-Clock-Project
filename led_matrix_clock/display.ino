@@ -11,12 +11,9 @@ void display_value(int a) {
   byte zero[5]  = {B11100000, B10100000, B10100000, B10100000, B11100000};
 
   //display if only is in clock mode
-  if (menu_count == 1) {
-    if (a / 100 > 12) {
-      a -= 1200; matrix[7] |= B11110000;
-    }
-    if (ss % 2) matrix[7] |= B00000011;
-  }
+  if (a / 100 >= 12) matrix[7] |= pm_symbol;
+  if (a / 100 > 12) a -= 1200;
+  if (ss % 2 && menu_count == 1) matrix[7] |= second_symbol_1;
 
   switch (a / 1000) {
     case 0: for (byte i = 1; i < 6; i++) matrix[i] |= zero[i - 1]; break;
@@ -74,8 +71,8 @@ void display_value(int a) {
     case 9: for (byte i = 1; i < 6; i++) matrix[i] |= nine[i - 1] >> 5; break;
   }
 
-  if (ss % 2 && menu_count == 1) matrix[7] |= B11000000;
-  if (clock.isArmed1()) matrix[7] |= B00001111;
+  if (ss % 2 && menu_count == 1) matrix[7] |= second_symbol_2;
+  if (clock.isArmed1()) matrix[7] |= alarm_symbol;
   for (byte i = 0; i < 8; i++) lc.setRow(0, i, matrix[i]);
   for (byte i = 0; i < 8; i++) matrix[i] = 0;
 
