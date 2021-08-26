@@ -23,6 +23,7 @@ void set_time() {
       panel_section = !panel_section;
     }
     if (millis() - m3 > return_time * 1000) {
+      lc.shutdown(panel_section, 0);
       menu_count = 1; return;
     }
   }
@@ -56,6 +57,7 @@ void set_alarm() {
       panel_section = !panel_section;
     }
     if (millis() - m3 > return_time * 1000) {
+      lc.shutdown(panel_section, 0);
       menu_count = 1; return;
     }
   }
@@ -66,7 +68,7 @@ void set_alarm() {
 
 void set_date() {
   bool panel_section = 1; bool state = 1, flag = 0;
-  m1 = millis();
+  m1 = m3 = millis();
   while (1) {
     if (millis() - m1 > 500) {
       m1 = millis(); state = !state; lc.shutdown(panel_section, state);
@@ -86,6 +88,10 @@ void set_date() {
     else if (r != 0) {
       lc.shutdown(panel_section, 0);
       panel_section = !panel_section;
+    }
+    if (millis() - m3 > return_time * 1000) {
+      lc.shutdown(panel_section, 0);
+      menu_count = 1; return;
     }
   }
   get_time(); get_date();

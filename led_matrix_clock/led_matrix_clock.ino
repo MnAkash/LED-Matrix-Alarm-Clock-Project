@@ -67,6 +67,18 @@ void setup() {
   Serial.begin(9600);
   clock.begin();
 
+  /*
+  //=================Comment out from here after alarm clear==================
+  // Disarm alarms and clear alarms for this example, because alarms is battery backed.
+  // Under normal conditions, the settings should be reset after power and restart microcontroller.
+  //don't keep these line in your final production otherwise the alarm will cleared off every time you reset the arduino
+  clock.armAlarm1(false);
+  clock.armAlarm2(false);
+  clock.clearAlarm1();
+  clock.clearAlarm2();
+
+  //==================Comment out upto this line after alarm clear============
+  */
 }
 
 void loop() {
@@ -115,7 +127,8 @@ void loop() {
     alarm = 1; //triggering the alarm
     if (!snooze) snooze_count = maximum_snooze_count;
     snooze = 0;
-    m2 = millis(); //for keeping the track of snooze timer
+    m2 = millis(); //for keeping the track of mute timer
   }
+  Serial.println(String(clock.isArmed1()) + "  " + clock.isAlarm1());
   if (alarm) alarm_function();
 }
