@@ -10,9 +10,9 @@ void display_value(int a) {
   byte nine[5]  = {B11100000, B10100000, B11100000, B00100000, B11100000};
   byte zero[5]  = {B11100000, B10100000, B10100000, B10100000, B11100000};
 
-  //display if only is in clock mode
   if (a / 100 >= 12) matrix[7] |= pm_symbol;
   if (a / 100 > 12) a -= 1200;
+  else if (a / 100 == 0) a += 1200;
   if (ss % 2 && menu_count == 1) matrix[7] |= second_symbol_1;
 
   switch (a / 1000) {

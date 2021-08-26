@@ -59,6 +59,7 @@ void set_alarm() {
       menu_count = 1; return;
     }
   }
+  menu_count = 1;
   hh = current_alarm / 100; mm = current_alarm % 100;
   clock.setAlarm1(0, hh, mm, 00, DS3231_MATCH_H_M_S);
 }

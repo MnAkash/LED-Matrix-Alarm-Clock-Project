@@ -21,13 +21,19 @@ RTCAlarmTime a1;
 #define set_button 11 //this will engage or change a value
 #define led 13 //to ensure if the button is pressed
 #define buzzer 2 //don't set this as same as led pin
-#define long_press_timer 2 //minimum second pressing required to register a long press
+#define long_press_timer 1 //minimum second pressing required to register a long press
 
 //define how your alarm will behave
 #define beeping_interval 100 //set this higher for slower alarm tone
-//turn off the alarm automatically if you don't press anything in 60 seconds
-#define mute_timer 60  //set the value to 0 if you want to keep going permanently
-#define return_time 60 //return to main function if nothing is pressed under 60 seconds 
+#define return_time 30 //return to main function from blinking mode if nothing is pressed under 30 seconds 
+#define menu_time 10 //return to clock display if nothing is done on alarm display after 10 seconds
+#define mute_timer 60 //mutes the alarm after 60 seconds. set the value to 0 if you want to keep going permanently
+#define menu_button_snooze 1 //set it to 1 to snooze the alarm by pressing menu button, set button will stop alarm. if set to 0, pressing any button will stop the alarm.
+#define snooze_time 5 //if nothing is pressed when alarm went off, it will ring again after 5 minutes
+#define maximum_snooze_count 10
+
+int snooze_count = maximum_snooze_count;
+bool snooze = 0; //don't change this
 
 //for co-ordination purpose, dont change this
 byte menu_count = 1;
@@ -39,7 +45,7 @@ int current_alarm;
 int current_date;
 bool alarm;
 int hh, mm, ss, DD, MM, YY;
-uint32_t m1, m2, m3, al = millis();
+uint32_t m1, m2, m3, sz, al = millis();
 byte pm_symbol = B11110000;
 byte second_symbol_1 = B00000011;
 byte second_symbol_2 = B11000000;
@@ -66,14 +72,26 @@ void setup() {
 void loop() {
   if (menu_press(2)) {
     if (!alarm) {
-      menu_count++;
+      menu_count++; m3 = millis();
       if (menu_count > menu_limit) menu_count = 1;
     }
-    alarm = 0; digitalWrite(buzzer, 0);
+    else {
+      alarm = 0; digitalWrite(buzzer, 0);
+      if (snooze_count > 0) {
+        snooze_count --;
+        snooze = menu_button_snooze; //alarm will snooze if menu button is pressed
+        sz = millis();
+      }
+    }
   }
+
+  //pressing the set button
   byte r = long_press();
   if (r == 1) {
-    lc.shutdown(1, 1); alarm = 0; digitalWrite(buzzer, 0);
+    lc.shutdown(1, 1);  ss = 1;
+    if (alarm) {
+      alarm = 0; digitalWrite(buzzer, 0); snooze = 0;
+    }
     while (!digitalRead(set_button));
     if (menu_count == 1) set_time();
     if (menu_count == 2) set_alarm();
@@ -81,12 +99,22 @@ void loop() {
     while (!digitalRead(menu_button));
   }
   if (r == 2) {
-    alarm = 0; digitalWrite(buzzer, 0);
+    if (alarm) {
+      alarm = 0; digitalWrite(buzzer, 0);
+    }
     if (menu_count == 2) clock.armAlarm1(!clock.isArmed1());
+    snooze = 0;
   }
+
+  //menu display
+  if (millis() - m3 > menu_time * 1000 && menu_count != 1) menu_count = 1;
   menu(menu_count); //refreshing the display
-  if (clock.isAlarm1()) {
+
+  //triggering the alarm
+  if ((clock.isArmed1() && clock.isAlarm1()) || (snooze && millis() - sz > snooze_time * 60000)) {
     alarm = 1; //triggering the alarm
+    if (!snooze) snooze_count = maximum_snooze_count;
+    snooze = 0;
     m2 = millis(); //for keeping the track of snooze timer
   }
   if (alarm) alarm_function();
