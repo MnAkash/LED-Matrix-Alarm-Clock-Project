@@ -120,5 +120,6 @@ void loop() {
     snooze = 0;
     m2 = millis(); //for keeping the track of mute timer
   }
+  Serial.println(String(clock.isArmed1()) + " " + String(clock.isAlarm1()));
   if (alarm) alarm_function();
 }
