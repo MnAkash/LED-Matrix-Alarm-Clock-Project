@@ -4,7 +4,6 @@ mail : akashmoniruzzaman@gmail.com
 */
 #include <Wire.h>
 #include <DS3231.h>
-#include <EEPROM.h>
 DS3231 clock;
 RTCDateTime dt;
 RTCAlarmTime a1;
@@ -44,7 +43,7 @@ byte menu_limit = 2; //if you want to see date also, put value 3
 int current_time;
 int current_alarm;
 int current_date;
-bool alarm, alarm_trigger = 0;
+bool alarm;
 int hh, mm, ss, DD, MM, YY;
 uint32_t m1, m2, m3, sz, al = millis();
 byte pm_symbol = B11110000;
@@ -68,8 +67,6 @@ void setup() {
   Serial.begin(9600);
   clock.begin();
   mute_timer = mute_timer * 1000;
-  alarm_trigger = EEPROM.read(0);
-  if (alarm_trigger != 0) alarm_trigger = 1;
 }
 
 void loop() {
@@ -108,10 +105,7 @@ void loop() {
     if (alarm) {
       alarm = 0; digitalWrite(buzzer, 0);
     }
-    if (menu_count == 2) {
-      alarm_trigger = !alarm_trigger;
-      EEPROM.update(0, alarm_trigger);
-    }
+    if (menu_count == 2) clock.armAlarm1(!clock.isArmed1());
     snooze = 0; m3 = millis();
   }
 
@@ -120,7 +114,7 @@ void loop() {
   menu(menu_count); //refreshing the display
 
   //triggering the alarm
-  if ((alarm_trigger && clock.isAlarm1()) || (snooze && millis() - sz > snooze_time * 60000)) {
+  if ((clock.isArmed1() && clock.isAlarm1()) || (snooze && millis() - sz > snooze_time * 60000)) {
     alarm = 1; //triggering the alarm
     if (!snooze) snooze_count = maximum_snooze_count;
     snooze = 0;
