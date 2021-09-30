@@ -31,29 +31,31 @@ int dht_timer = 7; // return to main menu from temparature display if nothing is
 //this is for servo motors
 #define servo1_pin 9 //Servo 1 signal is connected on this pin
 #define servo2_pin 10 //Servo 2 signal is connected on this pin
-#define servo_button 12 //this button will control Servo 1 position
+#define servo_button 12 //this button will trigger servo movements
 int servo1_stat, servo2_stat; //this is to track the position of servo motors
-byte s1_phase, s2_phase; //this is to track the progress of the servo motors
+byte s1_phase = 1, s2_phase = 1; //this is to track the progress of the servo motors
+bool servo1_act[2], servo2_act[2]; //this will determine where servo motor should head to.
+byte servo1_speed, servo2_speed, servo1_wait, servo2_wait; //global variable for referance in instant action
 
 //for servo motor 1
-int servo1_pos[] = {150, 80, 0}; //servo1 position from left to right
+int servo1_pos[] = {150, 80, 0}; //servo1 position. note that middle one is the middle position
 int servo1_left_rotation_speed = 90; //100 percent means maximum, minimum is 0
-int servo1_left_to_mid_rotation_speed = 90; //100 percent means maximum, minimum is 0
+int servo1_left_to_mid_rotation_speed = 70; //100 percent means maximum, minimum is 0
 int servo1_right_rotation_speed = 90; //100 percent means maximum, minimum is 0
-int servo1_right_to_mid_rotation_speed = 90; //100 percent means maximum, minimum is 0
+int servo1_right_to_mid_rotation_speed = 70; //100 percent means maximum, minimum is 0
 int servo1_left_waiting_time = 3;//wait in the left position for 3 seconds before moving again
 int servo1_mid_waiting_time = 3; //wait in the mid position for 3 seconds before moving again
 int servo1_right_waiting_time = 3; //wait in the right position for 3 seconds before moving again
 
 //for servo to motor 2
-int servo2_pos[] = {90, 45, 0}; //servo2 position from left to right
-int servo2_left_rotation_speed = 70; //100 percent means maximum, minimum is 0
+int servo2_pos[] = {150, 80, 0}; ////servo2 position. note that middle one is the middle position
+int servo2_left_rotation_speed = 90; //100 percent means maximum, minimum is 0
 int servo2_left_to_mid_rotation_speed = 70; //100 percent means maximum, minimum is 0
-int servo2_right_rotation_speed = 70; //100 percent means maximum, minimum is 0
-int servo2_right_to_mid_rotation_speed = 70; //100 percent means maximum, minimum is 0
-int servo2_left_waiting_time = 3;//wait in the left position for 3 seconds before moving again
+int servo2_right_rotation_speed = 80; //100 percent means maximum, minimum is 0
+int servo2_right_to_mid_rotation_speed = 50; //100 percent means maximum, minimum is 0
+int servo2_left_waiting_time = 1;//wait in the left position for 3 seconds before moving again
 int servo2_mid_waiting_time = 3; //wait in the mid position for 3 seconds before moving again
-int servo2_right_waiting_time = 3; //wait in the right position for 3 seconds before moving again
+int servo2_right_waiting_time = 4; //wait in the right position for 3 seconds before moving again
 
 //this is for push buttons and buzzer
 #define menu_button 6 //this will shuffle the menu or bring back to menu
@@ -81,7 +83,7 @@ uint32_t snooze_time = 5; //if nothing is pressed when alarm went off, it will r
 int snooze_count = maximum_snooze_count;
 bool snooze = 0; //don't change this
 byte menu_count = 1;
-byte menu_limit = 2; //if you want to see date also, put value 3
+byte menu_limit = 2;
 
 //this is for clock calculation
 int current_time;
@@ -97,10 +99,26 @@ byte pm_symbol = B11110000;
 byte second_symbol_1 = B00000011;
 byte second_symbol_2 = B11000000;
 byte alarm_symbol = B00001111;
+
+//this is for display mapping
 int matrix[8];
 byte celcius[8] = {0x00, 0x60, 0x6e, 0x08, 0x08, 0x08, 0x0e, 0x00};
 byte farenhite[8] = {0x00, 0x60, 0x6e, 0x08, 0x0e, 0x08, 0x08, 0x00};
 byte percentage[8] = {0x00, 0x32, 0x34, 0x08, 0x10, 0x2c, 0x4c, 0x00};
+byte one[5]   = {0x40, 0xc0, 0x40, 0x40, 0xe0};
+byte two[5]   = {0xe0, 0x20, 0xe0, 0x80, 0xe0};
+byte three[5] = {0xe0, 0x20, 0xe0, 0x20, 0xe0};
+byte four[5]  = {0xa0, 0xa0, 0xe0, 0x20, 0x20};
+byte five[5]  = {0xe0, 0x80, 0xe0, 0x20, 0xe0};
+byte six[5]   = {0xe0, 0x80, 0xe0, 0xa0, 0xe0};
+byte seven[5] = {0xe0, 0x20, 0x20, 0x20, 0x20};
+byte eight[5] = {0xe0, 0xa0, 0xe0, 0xa0, 0xe0};
+byte nine[5]  = {0xe0, 0xa0, 0xe0, 0x20, 0xe0};
+byte zero[5]  = {0xe0, 0xa0, 0xa0, 0xa0, 0xe0};
+byte left_arrow[8] = {0x10, 0x30, 0x70, 0xf0, 0xf0, 0x70, 0x30, 0x10}; //this will show when servo start moving to the left
+byte right_arrow[8] = {0x08, 0x0c, 0x0e, 0x0f, 0x0f, 0x0e, 0x0c, 0x08}; //this will show when servo start moving to the right
+byte right_stop[8] = {0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06}; //this will show when servo waits at the right
+byte left_stop[8] = {0x60,0x60,0x60,0x60,0x60,0x60,0x60,0x60}; //this will show when servo waits at the left
 
 
 LedControl lc = LedControl(data_in, clk, cs, 4);
@@ -164,7 +182,6 @@ void loop() {
     while (!digitalRead(set_button));
     if (menu_count == 1) set_time();
     else if (menu_count == 2) set_alarm();
-    else if (menu_count == 3) set_date();
     else if (menu_count == 4) set_start_time();
     else if (menu_count == 5)set_alarm2();
     while (!digitalRead(menu_button));
@@ -226,11 +243,8 @@ void loop() {
       m2 = millis(); //for keeping the track of mute timer
     }
   }
-  Serial.println(String(clock.isArmed1()));
   if (alarm) alarm_function();
-
   temp_update();
-
   if (millis() - m3 > menu_time * 1000 && menu_count > 1 && menu_count < 6) menu_count = 1;
   if (millis() - dh > dht_timer * 1000 && menu_count >= 6) menu_count = 1;
   menu(menu_count); //refreshing the display
