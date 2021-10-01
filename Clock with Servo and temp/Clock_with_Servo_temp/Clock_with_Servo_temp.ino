@@ -118,7 +118,7 @@ byte zero[5]  = {0xe0, 0xa0, 0xa0, 0xa0, 0xe0};
 byte left_arrow[8] = {0x10, 0x30, 0x70, 0xf0, 0xf0, 0x70, 0x30, 0x10}; //this will show when servo start moving to the left
 byte right_arrow[8] = {0x08, 0x0c, 0x0e, 0x0f, 0x0f, 0x0e, 0x0c, 0x08}; //this will show when servo start moving to the right
 byte right_stop[8] = {0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06}; //this will show when servo waits at the right
-byte left_stop[8] = {0x60,0x60,0x60,0x60,0x60,0x60,0x60,0x60}; //this will show when servo waits at the left
+byte left_stop[8] = {0x60, 0x60, 0x60, 0x60, 0x60, 0x60, 0x60, 0x60}; //this will show when servo waits at the left
 
 
 LedControl lc = LedControl(data_in, clk, cs, 4);
@@ -139,6 +139,8 @@ void setup() {
   servo2.attach(servo2_pin);
   servo1.write(servo1_pos[1]); //Servo 1 middle position
   servo2.write(servo2_pos[1]); //Servo 2 middle position
+  servo1.detach();
+  servo2.detach();
   for (byte i = 0; i < 4; i++) {
     (i < module_count) ? lc.shutdown(i, false) : lc.shutdown(i, true);
     lc.setIntensity(i, brightness); //maximum brightness is 15

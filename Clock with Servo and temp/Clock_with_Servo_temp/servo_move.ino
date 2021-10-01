@@ -1,4 +1,8 @@
 void servo_move() {
+  servo1.attach(servo1_pin);
+  servo2.attach(servo2_pin);
+  servo1.write(servo1_pos[1]); //Servo 1 middle position
+  servo2.write(servo2_pos[1]); //Servo 2 middle position
   lc.clearDisplay(0); lc.clearDisplay(1);
   lc.setRow(0, 3, 0xFF); lc.setRow(0, 4, 0xFF);
   lc.setRow(1, 3, 0xFF); lc.setRow(1, 4, 0xFF); // middle position indicating display
@@ -39,4 +43,6 @@ void servo_move() {
     delay(150);
   }
   delay(1000); //wait for a bit here to show the final screen
+  servo1.detach();
+  servo2.detach();
 }
