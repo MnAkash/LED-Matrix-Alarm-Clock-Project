@@ -1,0 +1,8 @@
+1st Implementation:
+I like the 3 beep sound you have given when the power connected. Keep that sound as it is then I know power is properly connected.
+Write a code to set button (pin 8) function as the Power on button. When you press button(pin8) 3 seconds, a sound should play and dot-matrix display “Hey”. I got a sound code from internet the Sound of R2D2 Star wars movie. That sound sketh uses delay(); but I want you to convert all delays to millis in the R2D2 sound sketch.
+So when you press (pin8) button for 3 seconds, sound start playing with “HEY” on the dotmatrix then it goes to the previously created Clock mode(Clock, Alarms, Servos, Temp) and work as usual.
+When you press the button (pin 8) 3 seconds when the device is on, it plays the sound “HEY” and turn off.
+2nd Implementation:(Ekhon dorkar nai)
+Now we have 2 servos work on a single button press. As you remember when I press servo button (Pin12), 2 servos start working as the left/right speeds and angles defined by me(Lets get this servo movement as “A”) and return to clock mode.
+I want to have another 3 servo movements like “B” “C” “D”. So now when I press Servo button (pin12), Servor movement should pick randomly “A” or “B’ or “C” or “D”.
